@@ -127,6 +127,8 @@ h1 .num{color:var(--accent2)}
 .chip.down{color:var(--down);background:rgba(228,91,91,.14)}
 .chip.note{color:var(--ink2)}
 .chip.score{background:var(--accent);color:var(--accent-ink)}
+.card.big{border:2px solid #e86a3a;background:linear-gradient(180deg, rgba(232,106,58,.12), transparent 55%), var(--card)}
+.big-tag{display:inline-block;background:#e86a3a;color:#fff;font-weight:900;font-size:12px;border-radius:999px;padding:2px 10px;margin-left:6px;vertical-align:1px}
 .card.random{border:2px dashed var(--accent);background:linear-gradient(180deg, rgba(243,183,47,.10), transparent 60%), var(--card)}
 
 /* Ending */
@@ -187,12 +189,13 @@ body.wide #end{max-width:560px;margin:0 auto}
       </div>
       <div class="faces" id="titleFaces"></div>
       <div class="field">
-        <input id="nameInput" maxlength="8" placeholder="主角名字" value="阿明" aria-label="主角名字">
+        <input id="nameInput" maxlength="8" placeholder="主角名字" value="歐大哥" aria-label="主角名字">
       </div>
       <button class="btn big" id="startBtn">開始人生 ▶</button>
       <div class="rules">
         <b>怎麼玩？</b><br>
         從 6 歲活到 80 歲，每件事都由你來選 —— 連人生意外也可以決定怎麼面對。<br>
+        遇到 <b>⚡人生重大轉折</b>（移民美國、留在台灣…）時要想清楚，它會改變之後的人生路線。<br>
         💪健康　💰財富　❤️感情　😊快樂　📚智慧<br>
         右上角隨時顯示<b>人生總分</b>（平均 60% ＋ 最弱項 40%），主角會隨著遭遇換表情、慢慢變老。<br>
         活到 80 歲，畫出你的<b>人生地圖</b>。目標：<b>95 分人生</b>！
@@ -208,7 +211,7 @@ body.wide #end{max-width:560px;margin:0 auto}
     <div class="hud">
       <div class="mini" id="hudAvatar"></div>
       <div class="info">
-        <div class="who"><span class="name" id="hudName">阿明</span><span class="age" id="hudAge">6 歲</span></div>
+        <div class="who"><span class="name" id="hudName">歐大哥</span><span class="age" id="hudAge">6 歲</span></div>
         <div class="stats" id="hudStats"></div>
       </div>
       <div class="total" aria-live="polite">
@@ -240,7 +243,7 @@ body.wide #end{max-width:560px;margin:0 auto}
     <aside class="card play-map" id="playMap">
       <h2 style="margin-top:0">🗺️ 我的人生地圖</h2>
       <div class="map" id="liveMap"></div>
-      <div class="legend"><span><i style="background:#3f9e5f"></i>上升</span><span><i style="background:#d2483f"></i>下降</span><span><i style="background:#b9ad9c"></i>持平</span><span>虛線＝人生意外</span></div>
+      <div class="legend"><span><i style="background:#3f9e5f"></i>上升</span><span><i style="background:#d2483f"></i>下降</span><span><i style="background:#b9ad9c"></i>持平</span><span>虛線＝人生意外　⚡＝重大轉折</span></div>
       <div class="map-detail" id="liveDetail">每做一個選擇，地圖就往前走一站。點任一站看細節。</div>
     </aside>
    </div>
@@ -269,7 +272,7 @@ body.wide #end{max-width:560px;margin:0 auto}
         <span><i style="background:#3f9e5f"></i>總分上升</span>
         <span><i style="background:#d2483f"></i>總分下降</span>
         <span><i style="background:#b9ad9c"></i>持平</span>
-        <span>虛線圈＝人生意外　點一下看細節</span>
+        <span>虛線圈＝人生意外　⚡＝重大轉折　點一下看細節</span>
       </div>
       <div class="map-detail" id="mapDetail">點地圖上的任一站，回顧當時的選擇。</div>
     </div>
@@ -545,12 +548,41 @@ const EVENTS = [
     {t:'轉行，做真正有興趣的事', p:'🧑‍🍳 ✨', b:'home', fx:{j:10,w:5,m:-6}, out:'收入少了一些，但每天起床都很期待上班。'},
     {t:'留下來熬年資', p:'🪑 😪', fx:{m:4,w:2,j:-5}, out:'穩是很穩，只是常常在辦公室發呆。'},
   ]},
+  {age:33, stage:3, emoji:'🗽', big:true, title:'人生大轉彎：移民還是留下？', text:'美國的公司開出一份工作，家人也覺得是讓孩子在國外長大的好機會。但爸媽、朋友、所有熟悉的一切都在台灣…', sc:'sky|🗽 ✈️ 🧳', choices:[
+    {t:'移民到美國', p:'🗽 🍔', b:'city', set:'us', fx:{m:12,w:6,r:-8,j:-2}, out:'拖著四個大行李箱降落在舊金山，一切從零開始。'},
+    {t:'留在台灣打拚', p:'🧋 🛵', b:'city', set:'tw', fx:{r:8,j:5,m:2}, out:'留在熟悉的地方，週末還能回家吃媽媽煮的飯。'},
+    {t:'搬去澳洲定居', p:'🦘 🏖️', b:'sea', set:'au', fx:{j:8,h:5,m:-4,r:-4}, out:'回到留學時愛上的那片海，生活步調慢了下來。'},
+  ]},
+  {age:36, stage:3, emoji:'🎫', big:true, need:'us', title:'在美國的綠卡之路', text:'工作簽證快到期了。公司願意幫{n}申請綠卡，但要等好幾年。', sc:'office|🎫 📄 ⏳', choices:[
+    {t:'乖乖排隊等綠卡', p:'⏳ 📑', fx:{w:4,j:-4,m:6}, out:'等了四年，終於拿到那張綠色的卡片。'},
+    {t:'跳去矽谷新創拚一把', p:'🚀 🌉', b:'city', roll:{p:.4,
+      win:{fx:{m:20,j:6}, out:'公司上市了！你在矽谷買了第一間房子。', face:'joy'},
+      lose:{fx:{m:-8,w:6,h:-3}, out:'新創燒完錢倒了，但履歷上多了一段精彩的經驗。', face:'sad'}}},
+    {t:'加入當地的華人社團', p:'🥟 👥', b:'party', fx:{r:10,j:6}, out:'過年包水餃、中秋烤肉，異鄉也有了家的感覺。'},
+  ]},
+  {age:36, stage:3, emoji:'🏭', big:true, need:'tw', title:'台灣的十字路口', text:'竹科的大廠要挖角{n}，薪水很好，但每天要加班到深夜。', sc:'city|🏭 💻 🌙', choices:[
+    {t:'進竹科當工程師', p:'💻 🏭', b:'office', fx:{m:14,h:-6,r:-4}, out:'年終獎金領到手軟，只是孩子說很少看到你。'},
+    {t:'回老家開一間早餐店', p:'🍳 🥪', b:'home', fx:{j:8,r:6,m:2,h:-2}, out:'每天清晨四點起床，街坊鄰居都叫你「老闆」。'},
+    {t:'轉行當老師', p:'👨‍🏫 📚', b:'school', fx:{w:8,j:6,m:-2}, out:'教過的學生畢業後回來看你，那是最大的成就感。'},
+  ]},
+  {age:36, stage:3, emoji:'🦘', big:true, need:'au', title:'澳洲的新生活', text:'在布里斯本安頓下來了，要靠什麼過日子呢？', sc:'sea|🦘 🏠 🌞', choices:[
+    {t:'開一間台灣珍奶店', p:'🧋 🏪', b:'city', roll:{p:.55,
+      win:{fx:{m:14,j:6}, out:'排隊人潮從店門口排到街角！', face:'joy'},
+      lose:{fx:{m:-6,w:5}, out:'房租太貴撐不下去，但你學會了在異鄉做生意。', face:'sad'}}},
+    {t:'到牧場工作', p:'🐑 🚜', b:'country', fx:{h:12,j:6,m:2}, out:'曬得黝黑，身體比二十歲還好。'},
+    {t:'進當地大學做研究', p:'🔬 🎓', b:'school', fx:{w:12,m:4,r:-2}, out:'你的論文登上了國際期刊。'},
+  ]},
   {age:38, stage:3, emoji:'🧑‍💼', title:'升官的機會', text:'老闆要升你當主管，但一年要出差半年。', sc:'office|🧑‍💼 📈 ✈️', choices:[
     {t:'接下！', p:'👔 ✈️', b:'sky', fx:{m:12,w:4,h:-5,r:-6}, out:'頭銜變大了，飛機上的時間也變多了。', face:'smirk'},
     {t:'婉拒，家庭比較重要', p:'🏠 🍲', b:'home', fx:{r:7,j:4,m:-2}, out:'每天準時下班，晚餐一起吃。'},
     {t:'談條件：升官但不出差', p:'🤝 📝', roll:{p:.5,
       win:{fx:{m:9,w:5,j:3}, out:'老闆竟然答應了！你成了談判高手。'},
       lose:{fx:{w:4,j:-3}, out:'老闆把位子給了別人。不過你更了解自己要什麼。'}}},
+  ]},
+  {age:40, stage:3, emoji:'💔', big:true, title:'婚姻亮紅燈', text:'工作忙、孩子吵，你和另一半已經好幾個禮拜沒有好好說話了。', sc:'home|💔 🌧️ 🛋️', choices:[
+    {t:'一起去做婚姻諮商', p:'🛋️ 💬', fx:{r:12,w:5,m:-3}, out:'把話說開之後，你們找回了當初的默契。'},
+    {t:'安排一趟兩人旅行', p:'✈️ 💑', b:'sea', fx:{r:10,j:8,m:-6}, out:'在海邊看夕陽，好像回到剛認識的時候。', face:'joy'},
+    {t:'埋頭工作，假裝沒事', p:'💼 😶', b:'office', fx:{m:6,r:-14,j:-6}, out:'有天回家，餐桌上只剩一張紙條。', face:'cry'},
   ]},
   {age:42, stage:3, emoji:'🩺', title:'健檢報告一片紅字', text:'醫生推了推眼鏡：「你這個血壓、這個膽固醇…」', sc:'hospital|🩺 📋 🧑‍⚕️', choices:[
     {t:'從明天開始每天運動', p:'🏃 🥗', b:'park', fx:{h:14,j:3,m:-2}, out:'半年後瘦了八公斤，醫生都嚇一跳。'},
@@ -584,6 +616,28 @@ const EVENTS = [
     {t:'學一樣新樂器', p:'🎷 🎶', b:'party', fx:{j:7,w:7}, out:'你在尾牙上表演薩克斯風，全場起立鼓掌。'},
     {t:'開始跑馬拉松', p:'🏃 🏅', b:'park', fx:{h:12,j:5}, out:'完成第一場全馬，你在終點哭了。'},
   ]},
+  {age:54, stage:4, emoji:'🎗️', big:true, title:'健康大警報', text:'例行健檢發現了腫瘤，還好是早期。醫生說：「接下來怎麼做，很重要。」', sc:'hospital|🎗️ 🧑‍⚕️ 📋', face:'shock', choices:[
+    {t:'立刻開刀，全力治療', p:'🏥 💪', fx:{h:6,m:-8,j:-2,w:3}, out:'手術很成功。從此你更珍惜每一天。'},
+    {t:'嘗試另類療法', p:'🌿 🔮', b:'home', roll:{p:.3,
+      win:{fx:{h:4,j:4}, out:'運氣很好，腫瘤沒有再長大。'},
+      lose:{fx:{h:-14,m:-4}, out:'耽誤了治療時機，吃了很多苦頭。', face:'cry'}}},
+    {t:'治療完就辭職，好好生活', p:'🌻 🧘', b:'park', fx:{h:8,j:8,r:6,m:-10}, out:'少賺了一些錢，卻多了好多陪家人的時間。'},
+  ]},
+  {age:57, stage:5, emoji:'✈️', big:true, need:'us', title:'要不要回台灣養老？', text:'在美國住了二十幾年，孩子已經是道地的美國人了。', sc:'city|🗽 🏠 ✈️', choices:[
+    {t:'搬回台灣', p:'✈️ 🏮', b:'sky', fx:{r:6,j:8,h:3,m:-4}, out:'夜市、廟口、健保 —— 還是台灣最好。', face:'joy'},
+    {t:'留在美國陪孩子', p:'🏡 👨‍👩‍👧', b:'home', fx:{r:10,m:4,j:2}, out:'感恩節一家人圍著火雞，你也學會了說 Happy Thanksgiving。'},
+    {t:'兩邊住，當候鳥', p:'🕊️ ✈️', b:'sky', fx:{j:10,w:4,m:-8}, out:'夏天在加州、冬天在台灣，兩邊的朋友都很多。'},
+  ]},
+  {age:57, stage:5, emoji:'✈️', big:true, need:'au', title:'要不要回台灣養老？', text:'澳洲的陽光曬了二十幾年，最近常常夢到小時候的巷子。', sc:'sea|🦘 🏠 ✈️', choices:[
+    {t:'搬回台灣', p:'✈️ 🏮', b:'sky', fx:{r:6,j:8,h:3,m:-4}, out:'一下飛機就去吃了碗滷肉飯，眼淚差點掉下來。', face:'joy'},
+    {t:'留在澳洲曬太陽', p:'🏖️ ☀️', b:'sea', fx:{h:6,j:6,r:2}, out:'每天在海邊散步，鄰居都叫你 Mate。'},
+    {t:'兩邊住，當候鳥', p:'🕊️ ✈️', b:'sky', fx:{j:10,w:4,m:-8}, out:'澳洲過冬、台灣過年，一年過兩次夏天。'},
+  ]},
+  {age:57, stage:5, emoji:'🧳', big:true, need:'tw', title:'孩子要出國了', text:'孩子拿到國外的工作，問{n}要不要一起搬過去。', sc:'home|🧳 ✈️ 👨‍👩‍👦', choices:[
+    {t:'留在台灣，視訊就好', p:'📱 🏠', fx:{j:2,r:-4,w:3,h:2}, out:'每個禮拜天晚上，準時跟孩子視訊。'},
+    {t:'跟著搬去，幫忙帶孫', p:'✈️ 👶', b:'sky', fx:{r:10,j:-2,m:-4}, out:'一把年紀重新適應新國家，但每天都能看到家人。'},
+    {t:'鼓勵孩子去闖，自己開始學英文', p:'🔤 🌍', b:'school', fx:{w:6,j:6,r:4,m:-3}, out:'每年飛去看孩子一次，英文也越說越溜。'},
+  ]},
   {age:60, stage:5, emoji:'🌏', title:'光榮退休', text:'辦公桌收乾淨了，接下來的時間都是你的。', sc:'office|🎊 📦 💐', choices:[
     {t:'環遊世界', p:'🌏 🧳 📸', b:'sky', fx:{j:12,w:4,m:-10}, out:'五大洲都去過了，相簿多到放不下。', face:'joy'},
     {t:'去當志工', p:'🙋 💚', b:'hospital', fx:{j:6,r:7,w:5}, out:'在醫院當導覽志工，每個人都很喜歡你。'},
@@ -606,12 +660,19 @@ const EVENTS = [
       lose:{fx:{m:-4,w:5,j:2}, out:'一場颱風把魚都沖走了…你學會了看天吃飯。', face:'shock'}}},
     {t:'開放給老朋友來釣魚', p:'🎣 👴 👴', b:'country', fx:{r:10,j:7,m:-2}, out:'每個週末魚池邊都坐滿了人，笑聲不斷。'},
   ]},
+  {age:70, stage:5, emoji:'🏥', big:true, title:'另一半住院了', text:'陪伴你大半輩子的另一半，因為中風住進了醫院。', sc:'hospital|🛏️ 💐 💗', face:'sad', choices:[
+    {t:'每天守在病床邊', p:'🛏️ 🤝', fx:{r:14,h:-6,j:-2}, out:'你握著他的手，一天都沒有缺席。'},
+    {t:'請看護，自己也要顧好身體', p:'🧑‍⚕️ 💪', fx:{r:6,h:2,m:-8}, out:'兩個人都要好好的，才能一起走更遠。'},
+    {t:'陪他做復健，一起重新學走路', p:'🦯 🌳', b:'park', fx:{r:10,h:4,j:4,w:2}, out:'第一次自己走到公園那天，你們都哭了。', face:'joy'},
+  ]},
   {age:72, stage:5, emoji:'🍵', title:'老朋友的邀約', text:'國小同學會，好幾十年沒見的老朋友都來了。', sc:'party|👴 👵 🍵', choices:[
     {t:'出席！還要上台唱歌', p:'🎤 🎶', b:'party', fx:{j:10,r:6}, out:'大家都老了，但笑聲還是跟小時候一樣。', face:'joy'},
     {t:'在公園打太極、散步', p:'🧘 🌳', b:'park', fx:{h:10,j:2}, out:'身體硬朗，醫生說你的心肺像五十歲。'},
     {t:'在家寫回憶錄', p:'✍️ 📖', b:'home', fx:{w:9,j:4,r:2}, out:'一字一句，把一輩子寫成一本書送給家人。'},
   ]},
 ];
+
+EVENTS.sort((a,b)=>a.age-b.age);  // 依年紀排序（同年紀的分支事件保持原順序）
 
 // 人生意外：一樣可以選擇怎麼面對
 const RANDOMS = [
@@ -707,7 +768,7 @@ function newGame(name){
   STATS.forEach(x => stats[x.k] = rand(38, 52));
   const gift = STATS[rand(0,4)];
   stats[gift.k] += 8;
-  S = {name, stats, age:6, i:0, log:[], queue:buildQueue(), gift, face:'calm', faceAt:{}};
+  S = {name, stats, age:6, i:0, log:[], queue:buildQueue(), gift, face:'calm', faceAt:{}, path:null};
   S.score0 = calcScore(stats).score;
 }
 function buildQueue(){
@@ -715,14 +776,16 @@ function buildQueue(){
   const pool = RANDOMS.slice().sort(()=>Math.random()-.5);
   EVENTS.forEach((e, idx) => {
     q.push({type:'main', e});
-    if (idx < EVENTS.length-1 && Math.random() < .35 && pool.length){
-      const nx = EVENTS[idx+1];
+    const nx = EVENTS[idx+1];
+    if (nx && nx.age > e.age && Math.random() < .35 && pool.length){
       const ri = pool.findIndex(r => (r.min||0) <= nx.age);
       if (ri >= 0){ const r = pool.splice(ri,1)[0]; q.push({type:'rand', e:r, age: Math.max(e.age, Math.round((e.age+nx.age)/2))}); }
     }
   });
   return q;
 }
+const MAIN_AGES = [...new Set(EVENTS.map(e=>e.age))];
+const PATHS = {us:'🗽 定居美國', tw:'🏠 留在台灣', au:'🦘 定居澳洲'};
 function moodFace(){
   const j = S.stats.j, sc = calcScore(S.stats).score;
   return j >= 72 && sc >= 60 ? 'happy' : j >= 40 ? 'calm' : 'sad';
@@ -749,12 +812,14 @@ function renderHUD(bump){
   const ring = $('hudRing');
   ring.style.strokeDashoffset = 169.6 * (1 - sc/100);
   ring.style.stroke = sc >= 95 ? 'var(--accent)' : sc >= 72 ? 'var(--j)' : sc >= 55 ? 'var(--m)' : 'var(--accent2)';
-  const doneMain = S.queue.slice(0, S.i).filter(q=>q.type==='main').length;
-  $('timeline').innerHTML = EVENTS.map((e,k)=>`<span class="${k<doneMain?'done':k===doneMain?'now':''}"></span>`).join('');
+  const cur = S.queue[S.i];
+  const nowAge = cur ? (cur.type==='main' ? cur.e.age : cur.age) : 99;
+  $('timeline').innerHTML = MAIN_AGES.map(a=>`<span class="${a<nowAge?'done':a===nowAge?'now':''}"></span>`).join('');
 }
 
 function renderEvent(){
-  const cur = S.queue[S.i];
+  let cur = S.queue[S.i];
+  while (cur && cur.type==='main' && cur.e.need && cur.e.need !== S.path) cur = S.queue[++S.i];
   if (!cur) return endGame();
   const e = cur.e;
   S.age = cur.type==='main' ? e.age : cur.age;
@@ -765,11 +830,12 @@ function renderEvent(){
   renderLiveMap();
   const card = $('eventCard');
   card.classList.toggle('random', cur.type==='rand');
+  card.classList.toggle('big', !!e.big);
   $('evResult').classList.remove('on');
   $('evChoices').style.display = '';
   card.style.animation = 'none'; void card.offsetWidth; card.style.animation = 'fade .35s ease';
   $('evMeta').textContent = cur.type==='main' ? `${e.emoji}  ${e.age} 歲 · ${STAGES[e.stage]}` : `${e.emoji}  ${S.age} 歲 · 人生意外`;
-  $('evTitle').textContent = e.title;
+  $('evTitle').innerHTML = e.title + (e.big ? '<span class="big-tag">⚡ 人生重大轉折</span>' : '');
   $('evText').textContent = fill(e.text) + (cur.type==='rand' ? ' 人生總有意外，但怎麼面對由你決定。' : '');
   $('evScene').innerHTML = sceneSVG(e.sc, S.age, S.face, S.wear);
   const bg = e.sc.split('|')[0];
@@ -781,6 +847,7 @@ function renderEvent(){
 
 function choose(k){
   const cur = S.queue[S.i], e = cur.e, c = e.choices[k];
+  if (c.set) S.path = c.set;
   let r = c, luck = null;
   if (c.roll){ luck = Math.random() < c.roll.p; r = luck ? c.roll.win : c.roll.lose; }
   applyAndShow({fx:r.fx, out:r.out, face:r.face || c.face, wear:r.wear || c.wear, luck, choice:c, k, e, type:cur.type});
@@ -813,7 +880,7 @@ function applyAndShow(o){
   if (o.wear) S.wear = o.wear;
   S.faceAt[S.age] = S.face;
   S.answered = true;
-  S.log.push({age:S.age, type:o.type, title:o.e.title, emoji:o.e.emoji, choice:o.choice.t, pic:o.choice.p.split(' ')[0],
+  S.log.push({age:S.age, type:o.type, big:!!o.e.big, title:o.e.title, emoji:o.e.emoji, choice:o.choice.t, pic:o.choice.p.split(' ')[0],
     others:o.e.choices.filter(c=>c!==o.choice).map(c=>c.t), score:after, ds, luck:o.luck, face:S.face, out:fill(o.out)});
   $('evChoices').style.display = 'none';
   $('evOut').innerHTML = (o.luck===true?'🍀 運氣不錯！<br>':o.luck===false?'😵 運氣不太好…<br>':'') + `<b>${o.choice.t}</b> —— ` + fill(o.out);
@@ -890,6 +957,7 @@ function mapSVG(){
       <text class="emo" x="${x}" y="${y+1}" font-size="20" text-anchor="middle" dominant-baseline="central">${n.pic}</text>
       <text x="${x}" y="${y-28}" font-size="10.5" text-anchor="middle" font-weight="900" fill="${ink}">${n.age}歲 ${n.emoji}</text>
       <text x="${x}" y="${y+35}" font-size="10" text-anchor="middle" fill="${ink}">${short}</text>
+      ${n.big ? `<g transform="translate(${x-18} ${y-15})"><circle r="9" fill="#e86a3a" stroke="#fff" stroke-width="1.5"/><text class="emo" y="1" font-size="10" text-anchor="middle" dominant-baseline="central">⚡</text></g>` : ''}
       <g transform="translate(${x+17} ${y-15})"><rect x="-12" y="-8" width="24" height="15" rx="7" fill="${col}"/><text y="3.5" font-size="9.5" text-anchor="middle" fill="#fff" font-weight="900">${n.score}</text></g></g>`;
   });
   return s + `</svg>`;
@@ -946,7 +1014,7 @@ function endGame(){
     <div class="stat"><span class="lb">${x.icon} ${x.name}</span>
     <span class="bar"><i style="width:${S.stats[x.k]}%;background:${x.color}"></i></span>
     <span class="v">${S.stats[x.k]}</span></div>`).join('');
-  $('formula').innerHTML = `總分 = 平均 ${avg.toFixed(1)} × 60% ＋ 最弱項 ${min} × 40% = <b>${score}</b><br>天賦：${S.gift.icon}${S.gift.name}　最強項：${strongest.icon}${strongest.name}`;
+  $('formula').innerHTML = `總分 = 平均 ${avg.toFixed(1)} × 60% ＋ 最弱項 ${min} × 40% = <b>${score}</b><br>天賦：${S.gift.icon}${S.gift.name}　最強項：${strongest.icon}${strongest.name}${S.path ? '　人生路線：'+PATHS[S.path] : ''}`;
   // 各年紀的樣子（用當時的表情）
   const pick = [6, 16, 28, 42, 60, 80];
   $('agesRow').innerHTML = pick.map(a => {
@@ -978,7 +1046,7 @@ function renderTitle(){
 function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('on'); setTimeout(()=>t.classList.remove('on'),1800); }
 
 $('startBtn').onclick = () => {
-  const name = $('nameInput').value.trim() || '阿明';
+  const name = $('nameInput').value.trim() || '歐大哥';
   newGame(name); $('hudDelta').classList.remove('on'); show('play'); renderEvent();
 };
 $('nextBtn').onclick = next;
