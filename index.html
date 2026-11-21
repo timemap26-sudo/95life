@@ -1,0 +1,660 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>95分人生</title>
+<meta name="description" content="一款人生模擬小遊戲：從6歲到80歲，每個選擇都會影響你的人生分數，目標是 95 分。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fbf5ea; --bg2:#f3e8d6; --card:#fffdf8; --ink:#2b241d; --ink2:#6f6356; --line:#e7dac5;
+  --accent:#f3b72f; --accent-ink:#3a2a00; --accent2:#e86a3a;
+  --h:#e45b5b; --m:#e0a320; --r:#e46aa0; --j:#4aa96c; --w:#4d82d6;
+  --shadow:0 10px 30px rgba(80,55,20,.12);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1d1915; --bg2:#26211b; --card:#2b251f; --ink:#f5ede1; --ink2:#bfb2a2; --line:#40372d;
+    --shadow:0 10px 30px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1d1915; --bg2:#26211b; --card:#2b251f; --ink:#f5ede1; --ink2:#bfb2a2; --line:#40372d;
+  --shadow:0 10px 30px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"Noto Sans TC",system-ui,-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;
+  min-height:100vh; -webkit-tap-highlight-color:transparent;
+  background-image:radial-gradient(circle at 20% 0%, rgba(243,183,47,.18), transparent 45%),
+                   radial-gradient(circle at 100% 100%, rgba(232,106,58,.12), transparent 40%);
+}
+.app{max-width:520px;margin:0 auto;padding:16px 16px 40px}
+.screen{display:none}
+.screen.on{display:block;animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* Title */
+.title-wrap{text-align:center;padding-top:12px}
+.badge{display:inline-block;background:var(--accent);color:var(--accent-ink);font-weight:900;border-radius:999px;padding:4px 14px;font-size:13px;letter-spacing:.1em}
+h1{font-size:54px;line-height:1;margin:14px 0 6px;font-weight:900;letter-spacing:.02em}
+h1 .num{color:var(--accent2)}
+.sub{color:var(--ink2);margin:0 0 10px;font-size:15px}
+.portrait{position:relative;width:240px;height:252px;margin:10px auto 6px}
+.portrait .halo{position:absolute;inset:18px 10px 0;border-radius:50%;background:var(--bg2)}
+.portrait svg.av{position:relative;width:100%;height:100%}
+.jersey{position:absolute;right:-6px;top:6px;width:70px;transform:rotate(8deg);opacity:.95}
+.field{display:flex;gap:8px;max-width:340px;margin:14px auto 0}
+.field input{flex:1;font:inherit;font-size:17px;padding:12px 14px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--ink);outline:none;min-width:0}
+.field input:focus{border-color:var(--accent)}
+.btn{font:inherit;font-weight:700;font-size:17px;border:0;border-radius:14px;padding:13px 20px;cursor:pointer;background:var(--accent);color:var(--accent-ink);box-shadow:0 4px 0 #c98f12;transition:transform .08s, box-shadow .08s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #c98f12}
+.btn.big{width:100%;max-width:340px;margin-top:12px;font-size:19px;padding:15px}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:none;border:2px solid var(--line)}
+.rules{max-width:380px;margin:18px auto 0;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 16px;font-size:14px;color:var(--ink2);line-height:1.7}
+.rules b{color:var(--ink)}
+.best{margin-top:10px;font-size:13px;color:var(--ink2)}
+
+/* HUD */
+.hud{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:10px 12px;box-shadow:var(--shadow);position:sticky;top:8px;z-index:5}
+.hud .mini{width:84px;height:88px;flex:none;border-radius:16px;background:var(--bg2);overflow:hidden}
+.hud .mini svg{width:100%;height:100%}
+.hud .info{flex:1;min-width:0}
+.hud .who{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.hud .name{font-weight:900;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hud .age{font-weight:700;color:var(--accent2);white-space:nowrap}
+.stats{display:grid;grid-template-columns:1fr;gap:3px;margin-top:4px}
+.stat{display:grid;grid-template-columns:44px 1fr 26px;align-items:center;gap:6px;font-size:12px}
+.stat .lb{color:var(--ink2);white-space:nowrap}
+.bar{height:8px;border-radius:99px;background:var(--bg2);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:99px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.stat .v{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+
+.timeline{display:flex;gap:4px;margin:14px 2px 0}
+.timeline span{flex:1;height:6px;border-radius:9px;background:var(--line)}
+.timeline span.done{background:var(--accent)}
+.timeline span.now{background:var(--accent2)}
+.stage-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--ink2);margin:4px 2px 0}
+
+/* Card */
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px 18px;margin-top:14px;box-shadow:var(--shadow)}
+.card .meta{font-size:13px;color:var(--ink2);font-weight:500}
+.card h2{margin:6px 0 8px;font-size:22px;line-height:1.35}
+.card p{margin:0 0 14px;line-height:1.75;color:var(--ink)}
+.card .emoji{font-size:40px;line-height:1}
+.choices{display:flex;flex-direction:column;gap:10px}
+.choice{font:inherit;text-align:left;background:var(--bg);border:2px solid var(--line);color:var(--ink);border-radius:16px;padding:12px 14px;cursor:pointer;font-size:16px;line-height:1.45;transition:border-color .15s, transform .1s, background .15s}
+.choice:hover{border-color:var(--accent)}
+.choice:active{transform:scale(.98)}
+.choice small{display:block;color:var(--ink2);font-size:13px;margin-top:2px}
+.result{display:none}
+.result.on{display:block;animation:fade .3s ease}
+.result .out{background:var(--bg);border-radius:14px;padding:12px 14px;line-height:1.7;margin-bottom:12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.chip{font-size:14px;font-weight:700;padding:5px 10px;border-radius:999px;background:var(--bg2)}
+.chip.up{color:#2f8a4f;background:rgba(74,169,108,.15)}
+.chip.down{color:#c0433b;background:rgba(228,91,91,.14)}
+.chip.note{color:var(--ink2)}
+.card.random{border:2px dashed var(--accent);background:linear-gradient(180deg, rgba(243,183,47,.10), transparent 60%), var(--card)}
+
+.float{position:fixed;left:50%;top:30%;transform:translateX(-50%);pointer-events:none;font-weight:900;font-size:22px;animation:up 1.1s ease forwards;z-index:20;text-shadow:0 2px 0 var(--card)}
+@keyframes up{from{opacity:0;transform:translate(-50%,10px)}20%{opacity:1}to{opacity:0;transform:translate(-50%,-50px)}}
+
+/* Ending */
+.score-ring{width:210px;height:210px;margin:6px auto 0;position:relative}
+.score-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.score-ring .n{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.score-ring .n b{font-size:64px;font-weight:900;line-height:1}
+.score-ring .n span{color:var(--ink2);font-size:13px}
+.end-title{text-align:center;font-size:28px;font-weight:900;margin:10px 0 4px}
+.end-sub{text-align:center;color:var(--ink2);margin:0 0 10px;line-height:1.7}
+.crown{display:none;text-align:center;font-size:15px;font-weight:900;color:var(--accent-ink);background:var(--accent);border-radius:999px;padding:6px 14px;width:max-content;margin:8px auto 0}
+.crown.on{display:block;animation:pop .6s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+.end-portrait{width:170px;height:178px;margin:0 auto}
+.breakdown{display:grid;gap:8px}
+.breakdown .stat{grid-template-columns:64px 1fr 34px;font-size:14px}
+.breakdown .bar{height:12px}
+.formula{font-size:13px;color:var(--ink2);margin-top:10px;line-height:1.7}
+.log{list-style:none;padding:0;margin:0;font-size:14px;line-height:1.6}
+.log li{display:grid;grid-template-columns:52px 1fr;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line)}
+.log li:last-child{border-bottom:0}
+.log .a{color:var(--accent2);font-weight:700}
+.actions{display:flex;gap:10px;margin-top:16px}
+.actions .btn{flex:1}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:30}
+.toast.on{opacity:1}
+.footer{text-align:center;font-size:12px;color:var(--ink2);margin-top:24px}
+@media (max-width:380px){ h1{font-size:44px} .hud .mini{width:70px;height:74px} }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- 開始畫面 -->
+  <section id="title" class="screen on">
+    <div class="title-wrap">
+      <span class="badge">人生模擬器</span>
+      <h1><span class="num">95</span>分人生</h1>
+      <p class="sub">人生不用一百分，九十五分剛剛好。</p>
+      <div class="portrait">
+        <div class="halo"></div>
+        <svg class="jersey" viewBox="0 0 80 90" aria-hidden="true">
+          <path d="M22 4 L32 4 C34 12 46 12 48 4 L58 4 L72 14 L64 30 L60 28 L60 86 L20 86 L20 28 L16 30 L8 14 Z" fill="#f6c431" stroke="#6a3fa0" stroke-width="3" stroke-linejoin="round"/>
+          <text x="40" y="66" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="26" fill="#6a3fa0">23</text>
+        </svg>
+        <div id="titleAvatar"></div>
+      </div>
+      <div class="field">
+        <input id="nameInput" maxlength="8" placeholder="主角名字" value="阿明" aria-label="主角名字">
+      </div>
+      <button class="btn big" id="startBtn">開始人生 ▶</button>
+      <div class="rules">
+        <b>怎麼玩？</b><br>
+        從 6 歲活到 80 歲，每個人生關卡做一個選擇。<br>
+        💪健康　💰財富　❤️感情　😊快樂　📚智慧<br>
+        最後依照<b>平均</b>和<b>最弱的一項</b>算總分 —— 只顧一樣是拿不到高分的。<br>
+        目標：<b>95 分人生</b>！
+      </div>
+      <div class="best" id="bestScore"></div>
+    </div>
+  </section>
+
+  <!-- 遊戲畫面 -->
+  <section id="play" class="screen">
+    <div class="hud">
+      <div class="mini" id="hudAvatar"></div>
+      <div class="info">
+        <div class="who"><span class="name" id="hudName">阿明</span><span class="age" id="hudAge">6 歲</span></div>
+        <div class="stats" id="hudStats"></div>
+      </div>
+    </div>
+    <div class="timeline" id="timeline"></div>
+    <div class="stage-labels"><span>童年</span><span>青春</span><span>青年</span><span>壯年</span><span>中年</span><span>退休</span></div>
+
+    <div class="card" id="eventCard">
+      <div class="meta" id="evMeta"></div>
+      <h2 id="evTitle"></h2>
+      <p id="evText"></p>
+      <div class="choices" id="evChoices"></div>
+      <div class="result" id="evResult">
+        <div class="out" id="evOut"></div>
+        <div class="chips" id="evChips"></div>
+        <button class="btn" id="nextBtn" style="width:100%">繼續 ▶</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 結局畫面 -->
+  <section id="end" class="screen">
+    <div class="card" style="text-align:center">
+      <div class="meta" id="endMeta"></div>
+      <div class="end-portrait" id="endAvatar"></div>
+      <div class="score-ring">
+        <svg viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="52" fill="none" stroke="var(--line)" stroke-width="10"/>
+          <circle id="ring" cx="60" cy="60" r="52" fill="none" stroke="var(--accent)" stroke-width="10" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7" style="transition:stroke-dashoffset 1.6s cubic-bezier(.2,.8,.2,1)"/>
+        </svg>
+        <div class="n"><b id="scoreNum">0</b><span>人生總分</span></div>
+      </div>
+      <div class="crown" id="crown">👑 達成 95 分人生！</div>
+      <div class="end-title" id="endTitle"></div>
+      <p class="end-sub" id="endSub"></p>
+    </div>
+    <div class="card">
+      <h2 style="margin-top:0">人生成績單</h2>
+      <div class="breakdown" id="breakdown"></div>
+      <div class="formula" id="formula"></div>
+    </div>
+    <div class="card">
+      <h2 style="margin-top:0">人生回顧</h2>
+      <ul class="log" id="lifeLog"></ul>
+    </div>
+    <div class="actions">
+      <button class="btn ghost" id="shareBtn">複製成績</button>
+      <button class="btn" id="againBtn">再活一次 ↻</button>
+    </div>
+  </section>
+
+  <div class="footer">95分人生 · 人生沒有標準答案</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ========== 角色繪製 ========== */
+// 依照照片：黑色短髮側分瀏海、溫暖膚色、瞇眼笑、米色圓領T恤
+function avatarSVG(opt){
+  const age = opt.age ?? 50, joy = opt.joy ?? 70;
+  const mood = joy >= 60 ? 'happy' : joy >= 35 ? 'calm' : 'sad';
+  const t = Math.max(0, Math.min(1, (age - 48) / 30));         // 白髮程度
+  const mix = (a,b,k)=>{const p=x=>parseInt(x,16);const c=[1,3,5].map(i=>Math.round(p(a.substr(i,2))*(1-k)+p(b.substr(i,2))*k));return '#'+c.map(v=>v.toString(16).padStart(2,'0')).join('')};
+  const hair = mix('#1f1a17', '#c9c6c0', t);
+  const hairHi = mix('#3a322c', '#e4e1dc', t);
+  const skin = '#e3b48e', skinSh = '#cf9a74', line = '#5a3a28';
+  const kid = age < 13, teen = age >= 13 && age < 19;
+
+  // 服裝
+  let shirt = '#ece2d1', shirtSh = '#d8ccb6', extra = '';
+  if (kid){ shirt = '#f6c94a'; shirtSh = '#ddb03a';
+    extra = `<path d="M82 170 L100 186 L118 170" fill="none" stroke="#fff" stroke-width="5" stroke-linejoin="round"/>`; }
+  else if (teen){ shirt = '#f6f7f9'; shirtSh = '#d7dbe2';
+    extra = `<path d="M80 168 L100 190 L120 168" fill="none" stroke="#cfd5de" stroke-width="3"/><rect x="128" y="190" width="24" height="8" rx="2" fill="#4d82d6"/>`; }
+  else if (age < 31){ shirt = '#5f86cf'; shirtSh = '#4b6fb3';
+    extra = `<path d="M74 170 C84 186 116 186 126 170" fill="none" stroke="#4b6fb3" stroke-width="6"/><path d="M92 184 L90 210 M108 184 L110 210" stroke="#e9eef8" stroke-width="2.5" stroke-linecap="round"/>`; }
+  else if (age < 46){ shirt = '#f7f8fa'; shirtSh = '#d6dbe4';
+    extra = `<path d="M80 166 L100 182 L120 166" fill="none" stroke="#c8cfda" stroke-width="3"/><path d="M96 180 L104 180 L108 220 L100 226 L92 220 Z" fill="#2f4a7a"/><path d="M95 174 L105 174 L104 182 L96 182 Z" fill="#253d68"/>`; }
+  else if (age >= 56){
+    extra = `<path d="M22 220 C26 186 54 172 80 168 L90 220 Z" fill="#8a6a4f"/><path d="M178 220 C174 186 146 172 120 168 L110 220 Z" fill="#8a6a4f"/><circle cx="96" cy="206" r="2.5" fill="#5e4633"/><circle cx="104" cy="206" r="2.5" fill="#5e4633"/>`; }
+
+  // 眼睛
+  let eyes, brows;
+  if (mood === 'happy'){
+    eyes = `<path d="M71 106 C76 99 85 99 90 106" fill="none" stroke="${line}" stroke-width="3.6" stroke-linecap="round"/>
+            <path d="M110 106 C115 99 124 99 129 106" fill="none" stroke="${line}" stroke-width="3.6" stroke-linecap="round"/>`;
+    brows = `<path d="M68 91 C75 85 85 85 92 88" fill="none" stroke="${hair}" stroke-width="5" stroke-linecap="round"/>
+             <path d="M108 88 C115 85 125 85 132 91" fill="none" stroke="${hair}" stroke-width="5" stroke-linecap="round"/>`;
+  } else if (mood === 'calm'){
+    eyes = `<ellipse cx="80.5" cy="104" rx="4.2" ry="3.4" fill="${line}"/><ellipse cx="119.5" cy="104" rx="4.2" ry="3.4" fill="${line}"/>
+            <path d="M73 100 C77 97 84 97 88 100 M112 100 C116 97 123 97 127 100" fill="none" stroke="${line}" stroke-width="2" stroke-linecap="round"/>`;
+    brows = `<path d="M68 90 C75 87 85 87 92 89" fill="none" stroke="${hair}" stroke-width="5" stroke-linecap="round"/>
+             <path d="M108 89 C115 87 125 87 132 90" fill="none" stroke="${hair}" stroke-width="5" stroke-linecap="round"/>`;
+  } else {
+    eyes = `<ellipse cx="80.5" cy="106" rx="3.8" ry="3.2" fill="${line}"/><ellipse cx="119.5" cy="106" rx="3.8" ry="3.2" fill="${line}"/>`;
+    brows = `<path d="M69 93 C76 92 84 89 91 85" fill="none" stroke="${hair}" stroke-width="5" stroke-linecap="round"/>
+             <path d="M109 85 C116 89 124 92 131 93" fill="none" stroke="${hair}" stroke-width="5" stroke-linecap="round"/>`;
+  }
+  // 嘴巴
+  let mouth;
+  if (mood === 'happy') mouth = `<path d="M84 136 C92 146 108 146 116 136 C108 140 92 140 84 136 Z" fill="#9a4a42" stroke="#7c3a33" stroke-width="2" stroke-linejoin="round"/>`;
+  else if (mood === 'calm') mouth = `<path d="M88 139 C95 142 105 142 112 139" fill="none" stroke="#8a4038" stroke-width="3" stroke-linecap="round"/>`;
+  else mouth = `<path d="M88 143 C95 137 105 137 112 143" fill="none" stroke="#8a4038" stroke-width="3" stroke-linecap="round"/>`;
+
+  const lines = (!kid && !teen) ? `
+    <path d="M86 125 C81 130 80 136 82 141" fill="none" stroke="${skinSh}" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M114 125 C119 130 120 136 118 141" fill="none" stroke="${skinSh}" stroke-width="2.2" stroke-linecap="round"/>` : '';
+  const crow = (age >= 40 && mood === 'happy') ? `
+    <path d="M62 104 L67 102 M62 109 L67 108 M138 104 L133 102 M138 109 L133 108" stroke="${skinSh}" stroke-width="1.6" stroke-linecap="round"/>` : '';
+  const forehead = age >= 58 ? `<path d="M84 80 C94 77 106 77 116 80 M88 85 C96 83 104 83 112 85" fill="none" stroke="${skinSh}" stroke-width="1.6" stroke-linecap="round" opacity=".8"/>` : '';
+  const glasses = age >= 66 ? `
+    <g fill="none" stroke="#6b4b2f" stroke-width="2.6"><rect x="66" y="94" width="29" height="21" rx="9"/><rect x="105" y="94" width="29" height="21" rx="9"/><path d="M95 103 C98 100 102 100 105 103 M66 101 L58 98 M134 101 L142 98"/></g>` : '';
+
+  // 頭髮：頭頂蓬鬆、瀏海從右往左斜撥蓋住額頭
+  const hairBack = kid
+    ? `<path d="M54 112 C46 64 70 34 100 34 C132 34 156 62 146 112 C142 96 138 86 130 80 L72 80 C64 88 58 98 54 112 Z" fill="${hair}"/>`
+    : `<path d="M55 108 C48 66 68 36 101 35 C134 35 154 62 146 106 C144 94 141 86 136 80 C126 74 92 74 70 78 C63 86 58 96 55 108 Z" fill="${hair}"/>`;
+  const fringe = `
+    <path d="M57 100 C54 62 76 40 102 40 C128 40 148 58 144 92 C140 80 134 72 126 68 C118 70 110 72 102 74 C92 76 84 80 76 84 C70 86 64 90 60 96 C59 97 58 99 57 100 Z" fill="${hair}"/>
+    <path d="M66 86 C64 80 66 76 70 72" fill="none" stroke="${hair}" stroke-width="6" stroke-linecap="round"/>
+    <path d="M74 66 C90 54 116 52 134 62" fill="none" stroke="${hairHi}" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+    <path d="M80 76 C94 66 112 62 128 64" fill="none" stroke="${hairHi}" stroke-width="2" stroke-linecap="round" opacity=".5"/>`;
+
+  const faceScale = kid ? 'translate(100 112) scale(.92) translate(-100 -112)' : '';
+
+  return `<svg class="av" viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="主角">
+    <path d="M18 222 C22 184 52 170 80 166 L120 166 C148 170 178 184 182 222 Z" fill="${shirt}"/>
+    <path d="M18 222 C20 200 30 186 44 178 C40 196 40 210 42 222 Z" fill="${shirtSh}" opacity=".6"/>
+    <path d="M182 222 C180 200 170 186 156 178 C160 196 160 210 158 222 Z" fill="${shirtSh}" opacity=".6"/>
+    <path d="M84 146 L84 170 C92 177 108 177 116 170 L116 146 Z" fill="${skinSh}"/>
+    <path d="M78 167 C86 178 114 178 122 167" fill="none" stroke="${shirtSh}" stroke-width="4" stroke-linecap="round"/>
+    ${extra}
+    <g transform="${faceScale}">
+      ${hairBack}
+      <ellipse cx="57" cy="114" rx="8" ry="13" fill="${skinSh}"/>
+      <ellipse cx="143" cy="114" rx="8" ry="13" fill="${skinSh}"/>
+      <path d="M59 98 C59 64 78 48 100 48 C122 48 141 64 141 98 C141 118 139 131 133 143 C125 157 113 165 100 165 C87 165 75 157 67 143 C61 131 59 118 59 98 Z" fill="${skin}"/>
+      ${fringe}
+      ${forehead}
+      ${brows}
+      ${eyes}
+      ${crow}
+      <ellipse cx="74" cy="122" rx="8" ry="5" fill="#e88f7a" opacity=".22"/>
+      <ellipse cx="126" cy="122" rx="8" ry="5" fill="#e88f7a" opacity=".22"/>
+      <path d="M100 106 C99 116 95 121 94 125 C97 129 103 129 106 125" fill="none" stroke="${skinSh}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+      ${lines}
+      ${mouth}
+      ${glasses}
+    </g>
+  </svg>`;
+}
+
+/* ========== 遊戲資料 ========== */
+/*DATA_START*/
+const STATS = [
+  {k:'h', name:'健康', icon:'💪', color:'var(--h)'},
+  {k:'m', name:'財富', icon:'💰', color:'var(--m)'},
+  {k:'r', name:'感情', icon:'❤️', color:'var(--r)'},
+  {k:'j', name:'快樂', icon:'😊', color:'var(--j)'},
+  {k:'w', name:'智慧', icon:'📚', color:'var(--w)'},
+];
+const STAGES = ['童年','青春','青年','壯年','中年','退休'];
+
+// fx: h健康 m財富 r感情 j快樂 w智慧；roll: 機率事件
+const EVENTS = [
+  {age:6, stage:0, emoji:'🎒', title:'放學鐘聲響了', text:'{n}背著書包走出校門，今天下午要做什麼呢？', choices:[
+    {t:'去公園跟同學打球', fx:{h:8,j:6,w:-2}, out:'跑到滿身大汗，晚上一沾枕頭就睡著。'},
+    {t:'乖乖去安親班寫功課', fx:{w:8,j:-3}, out:'九九乘法表背得滾瓜爛熟。'},
+    {t:'回家陪阿嬤看八點檔', fx:{r:8,j:4,h:-2}, out:'阿嬤偷偷塞了一顆糖給你。'},
+  ]},
+  {age:9, stage:0, emoji:'🧧', title:'過年拿到紅包', text:'今年的紅包加起來有兩千塊！', choices:[
+    {t:'全部存進小豬撲滿', fx:{m:9,w:3,j:-3}, out:'從小就懂得儲蓄，媽媽很欣慰。'},
+    {t:'買一顆真皮籃球', fx:{h:5,j:8,m:-2}, out:'這顆球陪你打了好多年。'},
+    {t:'交給媽媽「幫你保管」', fx:{r:6,j:-2}, out:'這筆錢後來就再也沒看過了…但媽媽很開心。'},
+  ]},
+  {age:12, stage:0, emoji:'🏫', title:'有同學被欺負', text:'班上有個轉學生一直被幾個同學捉弄。', choices:[
+    {t:'站出來幫他說話', roll:{p:.6,
+      win:{fx:{r:10,j:4,w:3}, out:'你們變成了最好的朋友，這段友情維持了一輩子。'},
+      lose:{fx:{r:4,h:-4,w:4}, out:'被推了一把擦破膝蓋，但轉學生一直記得你。'}}},
+    {t:'偷偷告訴老師', fx:{w:5,r:3}, out:'老師處理得很好，事情平息了。'},
+    {t:'假裝沒看到', fx:{j:-5,w:-1}, out:'這件事在你心裡放了很久。'},
+  ]},
+  {age:15, stage:1, emoji:'🏀', title:'籃球校隊來找你', text:'教練說你身材不錯，問你要不要加入校隊。', choices:[
+    {t:'加入！每天練球', fx:{h:12,j:7,w:-5}, out:'練出好體力，也交到一群好兄弟。'},
+    {t:'專心念書', fx:{w:10,h:-2,j:-2}, out:'月考成績名列前茅。'},
+    {t:'兩個都要！', fx:{h:6,w:6,j:-2,r:-2}, out:'每天累得像條狗，但兩邊都沒放棄。'},
+  ]},
+  {age:16, stage:1, emoji:'💌', title:'喜歡上隔壁班的同學', text:'每次經過走廊心跳都會加速…', choices:[
+    {t:'鼓起勇氣寫情書', roll:{p:.45,
+      win:{fx:{r:10,j:10}, out:'對方回了一張紙條：「我也是。」'},
+      lose:{fx:{j:-6,w:5}, out:'被婉拒了。心碎一個禮拜，但你學會了勇敢。'}}},
+    {t:'默默喜歡就好', fx:{j:-2,w:3}, out:'畢業紀念冊上，你只寫了「祝你幸福」。'},
+    {t:'先當好朋友', fx:{r:6,j:3}, out:'你們變成無話不談的朋友。'},
+  ]},
+  {age:18, stage:1, emoji:'📝', title:'大學入學考', text:'人生第一個重大選擇來了。', choices:[
+    {t:'拚第一志願熱門科系', fx:{w:12,h:-5,j:-4}, out:'考上了！但高三的黑眼圈花了一年才消。'},
+    {t:'選自己真正喜歡的科系', fx:{j:8,w:7}, out:'上課上得很開心，越念越有興趣。'},
+    {t:'不念了，直接出社會', fx:{m:10,w:-3,j:2}, out:'比同學早四年開始賺錢。'},
+  ]},
+  {age:20, stage:2, emoji:'🎸', title:'大學生活', text:'沒有人管你了，這四年要怎麼過？', choices:[
+    {t:'社團、聯誼玩好玩滿', fx:{j:9,r:8,w:-3}, out:'認識了一輩子的朋友。'},
+    {t:'打工存錢', fx:{m:9,w:2,j:-3}, out:'畢業時已經存了一筆小金庫。'},
+    {t:'圖書館常駐', fx:{w:10,r:-3}, out:'教授說你是他見過最認真的學生。'},
+  ]},
+  {age:23, stage:2, emoji:'💼', title:'第一份工作', text:'手上有兩個 offer，還有一張機票。', choices:[
+    {t:'大公司，穩定有保障', fx:{m:9,w:3,j:-3}, out:'薪水穩定，每年都有調薪。'},
+    {t:'加入朋友的新創公司', roll:{p:.35,
+      win:{fx:{m:18,j:6,w:5}, out:'公司被併購了！你拿到一筆可觀的股票。'},
+      lose:{fx:{m:-5,w:8,j:2}, out:'公司倒了，但你學到的東西比誰都多。'}}},
+    {t:'先去澳洲打工度假一年', fx:{j:10,w:6,m:-4,h:3}, out:'在農場摘了一年的草莓，看過最美的星空。'},
+  ]},
+  {age:27, stage:2, emoji:'💍', title:'遇見對的人', text:'交往三年了，對方的爸媽問你們什麼時候要結婚。', choices:[
+    {t:'買戒指求婚', fx:{r:15,j:6,m:-6}, out:'對方哭著說「我願意」。'},
+    {t:'先把事業衝起來再說', fx:{m:8,r:-7}, out:'業績突飛猛進，但對方開始有點不安…'},
+    {t:'先一起去旅行', fx:{j:7,r:7,m:-3}, out:'在京都的櫻花樹下，你們決定要一起走下去。'},
+  ]},
+  {age:30, stage:2, emoji:'📈', title:'朋友揪你投資', text:'老同學說他有個「穩賺不賠」的機會。', choices:[
+    {t:'All in！', roll:{p:.25,
+      win:{fx:{m:22,j:6}, out:'竟然真的賺了！你成為朋友圈裡的投資之神。'},
+      lose:{fx:{m:-14,j:-6,w:4}, out:'血本無歸。從此你知道「穩賺不賠」四個字要打折。'}}},
+    {t:'投一點點試試看', roll:{p:.5,
+      win:{fx:{m:5}, out:'小賺一筆，請大家吃了頓燒肉。'},
+      lose:{fx:{m:-3,w:2}, out:'小賠一點，就當繳學費。'}}},
+    {t:'婉拒，定期定額買指數', fx:{m:7,w:4}, out:'時間是你最好的朋友，複利慢慢發威。'},
+  ]},
+  {age:33, stage:3, emoji:'👶', title:'寶寶出生了', text:'抱著小小的他，你第一次覺得自己是個大人。', choices:[
+    {t:'請育嬰假在家陪伴', fx:{r:12,j:7,m:-6}, out:'你沒有錯過他第一次翻身、第一次叫爸爸。'},
+    {t:'更努力加班賺奶粉錢', fx:{m:10,r:-6,h:-4}, out:'家裡經濟寬裕了，但寶寶看到你會哭。'},
+    {t:'請爸媽幫忙帶', fx:{m:5,r:5,j:-2}, out:'阿公阿嬤開心得不得了，就是有點寵孫。'},
+  ]},
+  {age:38, stage:3, emoji:'🧑‍💼', title:'升官的機會', text:'老闆要升你當主管，但一年要出差半年。', choices:[
+    {t:'接下！', fx:{m:12,w:4,h:-5,r:-6}, out:'頭銜變大了，飛機上的時間也變多了。'},
+    {t:'婉拒，家庭比較重要', fx:{r:7,j:4,m:-2}, out:'每天準時下班，晚餐一起吃。'},
+    {t:'談條件：升官但不出差', roll:{p:.5,
+      win:{fx:{m:9,w:5,j:3}, out:'老闆竟然答應了！你成了談判高手。'},
+      lose:{fx:{w:4,j:-3}, out:'老闆把位子給了別人。不過你更了解自己要什麼。'}}},
+  ]},
+  {age:42, stage:3, emoji:'🩺', title:'健檢報告一片紅字', text:'醫生推了推眼鏡：「你這個血壓、這個膽固醇…」', choices:[
+    {t:'從明天開始每天運動', fx:{h:14,j:3,m:-2}, out:'半年後瘦了八公斤，醫生都嚇一跳。'},
+    {t:'買一堆保健食品', fx:{h:4,m:-4}, out:'吃了心安。'},
+    {t:'沒事啦，大家都這樣', fx:{h:-10,j:3}, out:'繼續鹹酥雞配珍奶，人生就是要享受！'},
+  ]},
+  {age:46, stage:4, emoji:'🏟️', title:'難得的週末', text:'整個禮拜都在忙，終於放假了。', choices:[
+    {t:'穿上球衣，找老朋友打球看球賽', fx:{h:6,j:9,r:3}, out:'你那件 23 號黃色球衣，還是一樣帥。'},
+    {t:'帶全家去露營', fx:{r:10,j:5,m:-3}, out:'孩子說這是他最喜歡的一次旅行。'},
+    {t:'去上進修課程', fx:{w:10,j:-2}, out:'拿到了一張證照，眼界也打開了。'},
+  ]},
+  {age:49, stage:4, emoji:'🏠', title:'爸媽年紀大了', text:'媽媽打電話來說爸爸最近常常忘東忘西。', choices:[
+    {t:'搬回去一起住照顧他們', fx:{r:12,j:-3,m:-3,h:-2}, out:'辛苦，但每天都能看到爸媽的笑臉。'},
+    {t:'請專業看護', fx:{m:-8,r:4,h:2}, out:'照顧得很專業，你也能兼顧工作。'},
+    {t:'每個週末都回家', fx:{r:8,h:-2}, out:'每個禮拜天的晚餐，成了全家最期待的時光。'},
+  ]},
+  {age:52, stage:4, emoji:'🏍️', title:'中年危機來了', text:'某天早上照鏡子，突然覺得人生好像少了點什麼。', choices:[
+    {t:'買一台夢想中的重機', fx:{j:10,m:-10,h:-2}, out:'風吹在臉上的感覺，像回到十八歲。'},
+    {t:'學一樣新樂器', fx:{j:7,w:7}, out:'你在尾牙上表演薩克斯風，全場起立鼓掌。'},
+    {t:'開始跑馬拉松', fx:{h:12,j:5}, out:'完成第一場全馬，你在終點哭了。'},
+  ]},
+  {age:60, stage:5, emoji:'🌏', title:'光榮退休', text:'辦公桌收乾淨了，接下來的時間都是你的。', choices:[
+    {t:'環遊世界', fx:{j:12,w:4,m:-10}, out:'五大洲都去過了，相簿多到放不下。'},
+    {t:'去當志工', fx:{j:6,r:7,w:5}, out:'在醫院當導覽志工，大家都叫你「明哥」。'},
+    {t:'顧問工作繼續做', fx:{m:10,w:3,h:-4}, out:'退而不休，老本越存越多。'},
+  ]},
+  {age:65, stage:5, emoji:'🍼', title:'當阿公了', text:'孩子把剛出生的孫子放進你懷裡。', choices:[
+    {t:'每天幫忙帶孫', fx:{r:12,j:6,h:-4}, out:'腰有點痠，但孫子第一句話是「阿公」。'},
+    {t:'偶爾帶，保留自己的生活', fx:{r:6,j:6}, out:'每次見面都是最開心的時光。'},
+    {t:'教孫子打籃球、講人生道理', fx:{w:5,r:7,h:2}, out:'孫子說阿公是他的偶像。'},
+  ]},
+  {age:72, stage:5, emoji:'🍵', title:'老朋友的邀約', text:'國小同學會，好幾十年沒見的老朋友都來了。', choices:[
+    {t:'出席！還要上台唱歌', fx:{j:10,r:6}, out:'大家都老了，但笑聲還是跟小時候一樣。'},
+    {t:'在公園打太極、散步', fx:{h:10,j:2}, out:'身體硬朗，醫生說你的心肺像五十歲。'},
+    {t:'在家寫回憶錄', fx:{w:9,j:4,r:2}, out:'一字一句，把一輩子寫成一本書送給家人。'},
+  ]},
+];
+
+const RANDOMS = [
+  {emoji:'🧾', title:'統一發票中獎了！', fx:{m:6,j:3}, out:'對中兩百萬…的末三碼，兩百塊也是錢！', min:13},
+  {emoji:'🤧', title:'重感冒', fx:{h:-5}, out:'在床上躺了一個禮拜。'},
+  {emoji:'📞', title:'老朋友來電', fx:{r:5,j:3}, out:'聊了三個小時，好像回到從前。'},
+  {emoji:'📉', title:'股市大跌', fx:{m:-7,j:-2}, out:'看著帳戶，默默把 App 刪掉。', min:20},
+  {emoji:'🐕', title:'被路邊的狗追', fx:{h:3,j:-1}, out:'跑出了人生最快的百米。'},
+  {emoji:'🌀', title:'颱風假！', fx:{j:5}, out:'在家吃泡麵追劇，太幸福了。'},
+  {emoji:'📚', title:'讀到一本好書', fx:{w:5,j:2}, out:'某句話改變了你看世界的方式。'},
+  {emoji:'🎁', title:'收到驚喜禮物', fx:{r:5,j:4}, out:'家人記得你最喜歡的東西。'},
+  {emoji:'🦷', title:'智齒發炎', fx:{h:-3,m:-2,j:-2}, out:'臉腫得像包子。'},
+  {emoji:'🏆', title:'抽中尾牙頭獎', fx:{m:8,j:5}, out:'全公司都在看你。', min:23},
+  {emoji:'🚗', title:'車子被撞了', fx:{m:-5,j:-3}, out:'人沒事最重要。', min:20},
+  {emoji:'🌅', title:'看了一場超美的日出', fx:{j:5,h:2}, out:'突然覺得，活著真好。'},
+];
+/*DATA_END*/
+
+/* ========== 計分 ========== */
+function calcScore(s){
+  const vals = STATS.map(x=>s[x.k]);
+  const avg = vals.reduce((a,b)=>a+b,0)/vals.length;
+  const min = Math.min(...vals);
+  return {avg, min, score: Math.round(avg*0.6 + min*0.4)};
+}
+
+/* ========== 遊戲狀態 ========== */
+const $ = id => document.getElementById(id);
+let S = null;
+const clamp = v => Math.max(0, Math.min(100, v));
+const rand = (a,b) => a + Math.floor(Math.random()*(b-a+1));
+const store = {
+  get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+};
+
+function newGame(name){
+  const stats = {};
+  STATS.forEach(x => stats[x.k] = rand(46, 60));
+  // 隨機抽一個天賦
+  const gift = STATS[rand(0,4)];
+  stats[gift.k] += 8;
+  S = {name, stats, age:6, i:0, log:[], queue:buildQueue(), gift};
+}
+function buildQueue(){
+  // 主線事件之間穿插隨機事件
+  const q = [];
+  const pool = RANDOMS.slice().sort(()=>Math.random()-.5);
+  EVENTS.forEach((e, idx) => {
+    q.push({type:'main', e});
+    if (idx < EVENTS.length-1 && Math.random() < .33 && pool.length){
+      const next = EVENTS[idx+1];
+      const ri = pool.findIndex(r => (r.min||0) <= next.age);
+      if (ri >= 0){ const r = pool.splice(ri,1)[0]; q.push({type:'rand', e:r, age: Math.max(e.age, Math.round((e.age+next.age)/2))}); }
+    }
+  });
+  return q;
+}
+
+/* ========== 畫面 ========== */
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on', s.id===id)); window.scrollTo({top:0,behavior:'smooth'}); }
+
+function renderHUD(){
+  $('hudName').textContent = S.name;
+  $('hudAge').textContent = S.age + ' 歲';
+  $('hudAvatar').innerHTML = avatarSVG({age:S.age, joy:S.stats.j});
+  $('hudStats').innerHTML = STATS.map(x => `
+    <div class="stat"><span class="lb">${x.icon}${x.name}</span>
+    <span class="bar"><i style="width:${S.stats[x.k]}%;background:${x.color}"></i></span>
+    <span class="v">${S.stats[x.k]}</span></div>`).join('');
+  const cur = S.queue[S.i];
+  const stage = cur ? (cur.type==='main' ? cur.e.stage : stageOf(cur.age)) : 5;
+  const mains = EVENTS.length;
+  const doneMain = S.queue.slice(0, S.i).filter(q=>q.type==='main').length;
+  $('timeline').innerHTML = EVENTS.map((e,k)=>`<span class="${k<doneMain?'done':k===doneMain?'now':''}"></span>`).join('');
+}
+function stageOf(age){ return age<13?0:age<19?1:age<31?2:age<46?3:age<56?4:5; }
+
+function fill(text){ return text.replaceAll('{n}', S.name); }
+
+function renderEvent(){
+  const cur = S.queue[S.i];
+  if (!cur) return endGame();
+  const e = cur.e;
+  S.age = cur.type==='main' ? e.age : cur.age;
+  renderHUD();
+  const card = $('eventCard');
+  card.classList.toggle('random', cur.type==='rand');
+  $('evResult').classList.remove('on');
+  $('evChoices').style.display = '';
+  card.style.animation = 'none'; void card.offsetWidth; card.style.animation = 'fade .35s ease';
+
+  if (cur.type==='main'){
+    $('evMeta').textContent = `${e.emoji}  ${e.age} 歲 · ${STAGES[e.stage]}`;
+    $('evTitle').textContent = e.title;
+    $('evText').textContent = fill(e.text);
+    $('evChoices').innerHTML = e.choices.map((c,k)=>`<button class="choice" data-k="${k}">${'ABC'[k]}. ${c.t}${c.roll?'<small>🎲 看運氣</small>':''}</button>`).join('');
+    $('evChoices').querySelectorAll('.choice').forEach(b => b.onclick = () => choose(+b.dataset.k));
+  } else {
+    $('evMeta').textContent = `${e.emoji}  ${S.age} 歲 · 人生意外`;
+    $('evTitle').textContent = e.title;
+    $('evText').textContent = '人生總有些事，不是你能選的。';
+    $('evChoices').innerHTML = `<button class="choice" data-k="0">好吧，接受它 🙂</button>`;
+    $('evChoices').querySelector('.choice').onclick = () => applyAndShow(e.fx, e.out, e.title, null);
+  }
+}
+
+function choose(k){
+  const e = S.queue[S.i].e, c = e.choices[k];
+  let fx, out, luck = null;
+  if (c.roll){
+    const win = Math.random() < c.roll.p;
+    const r = win ? c.roll.win : c.roll.lose;
+    fx = r.fx; out = r.out; luck = win;
+  } else { fx = c.fx; out = c.out; }
+  applyAndShow(fx, out, `${e.title}：${c.t}`, luck);
+}
+
+function applyAndShow(fx, out, logText, luck){
+  const fx2 = Object.assign({}, fx);
+  const notes = [];
+  // 歲月的痕跡：退休後健康自然下降
+  if (S.age >= 56 && S.queue[S.i].type==='main'){ fx2.h = (fx2.h||0) - 3; notes.push('⏳ 歲月 -3 健康'); }
+  const chips = [];
+  STATS.forEach(x => {
+    const d = fx2[x.k]; if (!d) return;
+    const before = S.stats[x.k];
+    S.stats[x.k] = clamp(before + d);
+    chips.push(`<span class="chip ${d>0?'up':'down'}">${x.icon} ${x.name} ${d>0?'+':''}${d}</span>`);
+  });
+  notes.forEach(n => chips.push(`<span class="chip note">${n}</span>`));
+  S.log.push({age:S.age, text:logText});
+  $('evChoices').style.display = 'none';
+  $('evOut').innerHTML = (luck===true?'🍀 運氣不錯！<br>':luck===false?'😵 運氣不太好…<br>':'') + fill(out);
+  $('evChips').innerHTML = chips.join('');
+  $('evResult').classList.add('on');
+  renderHUD();
+  floatText(luck===true ? '🍀' : luck===false ? '💦' : '✨');
+}
+
+function floatText(t){
+  const el = document.createElement('div'); el.className='float'; el.textContent=t;
+  document.body.appendChild(el); setTimeout(()=>el.remove(), 1200);
+}
+
+function next(){ S.i++; renderEvent(); }
+
+const ENDINGS = [
+  {min:95, title:'🏆 95分人生', sub:'不是完美，但剛剛好。健康、家人、朋友、夢想都在身邊 —— 這就是人生勝利組。'},
+  {min:85, title:'🌟 精彩的人生', sub:'回頭看，每一步都算數。只差一點點，就是傳說中的95分人生了！'},
+  {min:72, title:'🙂 平凡而幸福', sub:'沒有大起大落，但有很多值得記住的日子。'},
+  {min:55, title:'😌 有點遺憾的人生', sub:'有些東西顧了這頭忘了那頭。人生，終究是一場平衡的藝術。'},
+  {min:0,  title:'🌧️ 辛苦的一生', sub:'這一輩子過得不容易。要不要再活一次，換個方式試試？'},
+];
+const ADVICE = {
+  h:'下輩子記得多運動、早點睡。身體是一切的本錢。',
+  m:'錢不是萬能，但下輩子可以早點開始理財。',
+  r:'工作做不完，但家人朋友會等不及。多陪陪身邊的人吧。',
+  j:'別把自己逼太緊，偶爾也要為自己而活。',
+  w:'多讀書、多學習，智慧會讓你少走很多冤枉路。',
+};
+
+function endGame(){
+  S.age = 80;
+  const {avg, min, score} = calcScore(S.stats);
+  const end = ENDINGS.find(x => score >= x.min);
+  const weakest = STATS.reduce((a,b)=> S.stats[a.k] <= S.stats[b.k] ? a : b);
+  const strongest = STATS.reduce((a,b)=> S.stats[a.k] >= S.stats[b.k] ? a : b);
+  $('endMeta').textContent = `${S.name} · 80 歲生日`;
+  $('endAvatar').innerHTML = avatarSVG({age:80, joy: score>=55 ? 80 : 40});
+  $('endTitle').textContent = end.title;
+  $('endSub').textContent = end.sub + (score < 95 ? ` 最需要加強的是「${weakest.name}」：${ADVICE[weakest.k]}` : '');
+  $('crown').classList.toggle('on', score >= 95);
+  $('breakdown').innerHTML = STATS.map(x => `
+    <div class="stat"><span class="lb">${x.icon} ${x.name}</span>
+    <span class="bar"><i style="width:${S.stats[x.k]}%;background:${x.color}"></i></span>
+    <span class="v">${S.stats[x.k]}</span></div>`).join('');
+  $('formula').innerHTML = `總分 = 平均 ${avg.toFixed(1)} × 60% ＋ 最弱項 ${min} × 40% = <b>${score}</b><br>天賦：${S.gift.icon}${S.gift.name}　最強項：${strongest.icon}${strongest.name}`;
+  $('lifeLog').innerHTML = S.log.map(l => `<li><span class="a">${l.age}歲</span><span>${l.text}</span></li>`).join('');
+  show('end');
+  // 分數動畫
+  const ring = $('ring'), C = 326.7;
+  ring.style.stroke = score >= 95 ? 'var(--accent)' : score >= 72 ? 'var(--j)' : 'var(--accent2)';
+  ring.style.strokeDashoffset = C;
+  requestAnimationFrame(()=>requestAnimationFrame(()=> ring.style.strokeDashoffset = C * (1 - score/100)));
+  let n = 0; const t0 = performance.now();
+  (function tick(now){ const p = Math.min(1,(now-t0)/1400); n = Math.round(score * (1-Math.pow(1-p,3))); $('scoreNum').textContent = n; if(p<1) requestAnimationFrame(tick); })(t0);
+  const best = +(store.get('95life-best')||0);
+  if (score > best) store.set('95life-best', score);
+  S.final = {score, title:end.title};
+}
+
+function renderTitle(){
+  $('titleAvatar').innerHTML = avatarSVG({age:50, joy:90});
+  const best = store.get('95life-best');
+  $('bestScore').textContent = best ? `🏅 你的最高分：${best} 分` : '';
+}
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('on'); setTimeout(()=>t.classList.remove('on'),1800); }
+
+$('startBtn').onclick = () => {
+  const name = $('nameInput').value.trim() || '阿明';
+  newGame(name); show('play'); renderEvent();
+};
+$('nextBtn').onclick = next;
+$('againBtn').onclick = () => { renderTitle(); show('title'); };
+$('shareBtn').onclick = async () => {
+  const s = S.final; if (!s) return;
+  const txt = `我在《95分人生》裡讓「${S.name}」活到 80 歲，拿到 ${s.score} 分 —— ${s.title.replace(/^\S+\s/,'')}！\n` +
+    STATS.map(x=>`${x.icon}${x.name} ${S.stats[x.k]}`).join('  ');
+  try { await navigator.clipboard.writeText(txt); toast('已複製，貼給朋友看吧！'); }
+  catch(e){ toast('無法複製，請手動截圖分享'); }
+};
+renderTitle();
+</script>
+</body>
+</html>
