@@ -156,6 +156,14 @@ h1 .num{color:var(--accent2)}
 .map-detail b{color:var(--ink)}
 .legend{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--ink2);margin-top:6px}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:-1px}
+body.wide .app{max-width:1120px}
+body.wide #end{max-width:560px;margin:0 auto}
+.play-map h2{font-size:18px}
+@media (min-width:960px){
+  .play-grid{display:grid;grid-template-columns:minmax(0,560px) minmax(0,1fr);gap:20px;align-items:start}
+  .play-map{position:sticky;top:8px;margin-top:0;height:calc(100vh - 110px);min-height:460px;display:flex;flex-direction:column}
+  .play-map #liveMap{flex:1 1 auto;min-height:0;overflow-y:auto;border-radius:16px}
+}
 .actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
 .actions .btn{flex:1;min-width:140px}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:30}
@@ -195,6 +203,8 @@ h1 .num{color:var(--accent2)}
 
   <!-- 遊戲畫面 -->
   <section id="play" class="screen">
+   <div class="play-grid">
+    <div class="play-main">
     <div class="hud">
       <div class="mini" id="hudAvatar"></div>
       <div class="info">
@@ -226,6 +236,14 @@ h1 .num{color:var(--accent2)}
         <button class="btn" id="nextBtn" style="width:100%">繼續 ▶</button>
       </div>
     </div>
+      </div>
+    <aside class="card play-map" id="playMap">
+      <h2 style="margin-top:0">🗺️ 我的人生地圖</h2>
+      <div class="map" id="liveMap"></div>
+      <div class="legend"><span><i style="background:#3f9e5f"></i>上升</span><span><i style="background:#d2483f"></i>下降</span><span><i style="background:#b9ad9c"></i>持平</span><span>虛線＝人生意外</span></div>
+      <div class="map-detail" id="liveDetail">每做一個選擇，地圖就往前走一站。點任一站看細節。</div>
+    </aside>
+   </div>
   </section>
 
   <!-- 結局畫面 -->
@@ -341,9 +359,14 @@ function glasses(){
     <path d="M282 222 C290 214 298 214 306 222 M186 222 L142 214 M402 222 L440 214" fill="none"/></g></g>`;
 }
 function attire(age, wear){
-  if (wear==='suit' || (age>=26 && age<60 && !wear)) return `<path d="M252 450 L284 450 L296 520 L240 520 Z" fill="#2f4a7a" stroke="${LINE}" stroke-width="3"/><path d="M250 430 L286 430 L282 452 L254 452 Z" fill="#253d68" stroke="${LINE}" stroke-width="3"/>`;
+  if (wear==='suit' || (age>=26 && age<60 && !wear)) return `<g stroke="${LINE}" stroke-width="4" stroke-linejoin="round">
+    <path d="M30 520 L44 446 L108 428 L232 480 L344 442 L430 472 L470 520 Z" fill="#f4f6fa"/>
+    <path d="M224 494 L240 494 L254 520 L210 520 Z" fill="#2f4a7a"/>
+    <path d="M218 474 L246 474 L240 495 L224 495 Z" fill="#253d68"/>
+    <path d="M106 426 L222 474 L200 508 L96 468 Z" fill="#fff"/>
+    <path d="M346 440 L242 474 L264 508 L354 480 Z" fill="#fff"/></g>`;
   if (wear==='helmet') return `<rect x="380" y="470" width="64" height="40" rx="6" fill="#f3f0e6" stroke="${LINE}" stroke-width="3"/><text x="412" y="499" text-anchor="middle" font-size="24" font-weight="900" fill="#c0392b" style="font-family:sans-serif">MP</text>`;
-  if (age < 13) return `<path d="M222 450 L268 486 L314 450 L300 500 L268 486 L236 500 Z" fill="#e23b3b" stroke="${LINE}" stroke-width="3" stroke-linejoin="round"/>`;
+  if (age < 13) return `<path d="M186 456 L232 488 L278 456 L264 506 L232 488 L200 506 Z" fill="#e23b3b" stroke="${LINE}" stroke-width="3" stroke-linejoin="round"/>`;
   return '';
 }
 // opt: age, face, wear('cap'|'helmet'|'grad'|'straw'|'suit'|'none'), attrs（嵌進場景時用）
@@ -655,6 +678,13 @@ const RANDOMS = [
 ];
 
 /* ========== 計分 ========== */
+// 難度調整：好事效果放大、壞事效果打折，讓 95 分人生比較容易達成
+const EASY = {up:1.3, down:0.7, aging:-2};
+function scaleFx(fx){
+  const o = {};
+  for (const k in fx){ const v = fx[k]; o[k] = v > 0 ? Math.round(v*EASY.up) : Math.round(v*EASY.down); }
+  return o;
+}
 function calcScore(s){
   const vals = STATS.map(x=>s[x.k]);
   const avg = vals.reduce((a,b)=>a+b,0)/vals.length;
@@ -699,7 +729,7 @@ function moodFace(){
 }
 
 /* ========== 畫面 ========== */
-function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on', s.id===id)); window.scrollTo({top:0,behavior:'smooth'}); }
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on', s.id===id)); document.body.classList.toggle('wide', id!=='title'); window.scrollTo({top:0,behavior:'smooth'}); }
 function stageOf(age){ return age<13?0:age<19?1:age<31?2:age<46?3:age<56?4:5; }
 function fill(text){ return text.replaceAll('{n}', S.name); }
 function curWear(){ const c = S.queue[S.i]; return c && c.type==='main' ? c.e.wear : undefined; }
@@ -730,7 +760,9 @@ function renderEvent(){
   S.age = cur.type==='main' ? e.age : cur.age;
   S.wear = cur.type==='main' ? e.wear : undefined;
   S.face = e.face || moodFace();
+  S.answered = false;
   renderHUD(true);
+  renderLiveMap();
   const card = $('eventCard');
   card.classList.toggle('random', cur.type==='rand');
   $('evResult').classList.remove('on');
@@ -760,9 +792,9 @@ function faceFromDelta(d, luck){
 }
 
 function applyAndShow(o){
-  const fx2 = Object.assign({}, o.fx);
+  const fx2 = scaleFx(o.fx);
   const notes = [];
-  if (S.age >= 56 && o.type==='main'){ fx2.h = (fx2.h||0) - 3; notes.push('⏳ 歲月 -3 健康'); }
+  if (S.age >= 56 && o.type==='main'){ fx2.h = (fx2.h||0) + EASY.aging; notes.push(`⏳ 歲月 ${EASY.aging} 健康`); }
   const before = calcScore(S.stats).score;
   const chips = [];
   let sum = 0;
@@ -780,6 +812,7 @@ function applyAndShow(o){
   S.face = o.face || faceFromDelta(sum, o.luck);
   if (o.wear) S.wear = o.wear;
   S.faceAt[S.age] = S.face;
+  S.answered = true;
   S.log.push({age:S.age, type:o.type, title:o.e.title, emoji:o.e.emoji, choice:o.choice.t, pic:o.choice.p.split(' ')[0],
     others:o.e.choices.filter(c=>c!==o.choice).map(c=>c.t), score:after, ds, luck:o.luck, face:S.face, out:fill(o.out)});
   $('evChoices').style.display = 'none';
@@ -788,6 +821,7 @@ function applyAndShow(o){
   $('evResult').classList.add('on');
   $('evScene').innerHTML = sceneSVG(`${o.choice.b || o.e.sc.split('|')[0]}|${o.choice.p}`, S.age, S.face, S.wear);
   renderHUD(true);
+  renderLiveMap();
   const dl = $('hudDelta');
   dl.textContent = ds === 0 ? '±0' : (ds>0?'+':'') + ds;
   dl.style.color = ds > 0 ? 'var(--up)' : ds < 0 ? 'var(--down)' : 'var(--ink2)';
@@ -797,8 +831,15 @@ function applyAndShow(o){
 function next(){ S.i++; renderEvent(); }
 
 /* ========== 人生地圖 ========== */
+function mapNodes(){
+  const head = [{age:6, start:true, score:S.score0}].concat(S.log);
+  if (S.final) return head.concat([{age:80, end:true, score:S.final.score}]);
+  if (S.answered) return head;
+  const cur = S.queue[S.i];
+  return head.concat([{age:S.age, cur:true, score:calcScore(S.stats).score, emoji:cur ? cur.e.emoji : '📍'}]);
+}
 function mapSVG(){
-  const nodes = [{age:6, start:true, score:S.score0}].concat(S.log).concat([{age:80, end:true, score:S.final.score}]);
+  const nodes = mapNodes();
   const W = 360, cols = 4, rowH = 112, top = 150, padX = 48;
   const step = (W - padX*2) / (cols-1);
   const pos = nodes.map((n,i)=>{ const r = Math.floor(i/cols), c = i%cols; const cc = r%2 ? cols-1-c : c; return [padX + cc*step, top + r*rowH]; });
@@ -823,11 +864,18 @@ function mapSVG(){
     ${[0,50,95].map(v=>`<path d="M${cx0} ${sy(v)} H${cx1}" stroke="${v===95?'#f3b72f':'#e3d6c1'}" stroke-dasharray="${v===95?'4 3':'0'}"/><text x="${cx0-4}" y="${sy(v)+3}" font-size="9" text-anchor="end" fill="${ink2}">${v}</text>`).join('')}
     <path d="${line} L${sx(nodes.length-1)} ${cy1} L${cx0} ${cy1} Z" fill="#f3b72f" opacity=".18"/>
     <path d="${line}" fill="none" stroke="#e86a3a" stroke-width="2.5" stroke-linejoin="round"/>
-    <circle cx="${sx(nodes.length-1)}" cy="${sy(S.final.score)}" r="4" fill="#e86a3a"/>
+    <circle cx="${sx(nodes.length-1)}" cy="${sy(nodes[nodes.length-1].score)}" r="4" fill="#e86a3a"/>
     <path d="${d}" fill="none" stroke="#d9c7a8" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
     <path d="${d}" fill="none" stroke="#fff" stroke-width="2.5" stroke-dasharray="8 8" stroke-linecap="round"/>`;
   nodes.forEach((n,i)=>{
     const [x,y] = pos[i];
+    if (n.cur){
+      s += `<g class="node" data-i="${i}"><circle cx="${x}" cy="${y}" r="21" fill="#fff" stroke="#e86a3a" stroke-width="4"><animate attributeName="r" values="21;25;21" dur="1.4s" repeatCount="indefinite"/></circle>
+        <text class="emo" x="${x}" y="${y+1}" font-size="20" text-anchor="middle" dominant-baseline="central">${n.emoji}</text>
+        <text x="${x}" y="${y-30}" font-size="11" text-anchor="middle" font-weight="900" fill="#e86a3a">${n.age}歲 現在</text>
+        <text x="${x}" y="${y+38}" font-size="10" text-anchor="middle" fill="${ink}">做選擇中…</text></g>`;
+      return;
+    }
     if (n.start || n.end){
       s += `<g class="node" data-i="${i}"><circle cx="${x}" cy="${y}" r="22" fill="${n.end?'#f3b72f':'#fff'}" stroke="${ink}" stroke-width="2.5"/>
         <text class="emo" x="${x}" y="${y+1}" font-size="20" text-anchor="middle" dominant-baseline="central">${n.end?'🎂':'🚩'}</text>
@@ -846,12 +894,21 @@ function mapSVG(){
   });
   return s + `</svg>`;
 }
-function bindMap(){
-  const nodes = [null].concat(S.log);
-  $('lifeMap').querySelectorAll('.node').forEach(g => g.onclick = () => {
-    const i = +g.dataset.i, n = nodes[i];
-    if (!n){ $('mapDetail').innerHTML = i===0 ? `<b>6 歲，人生出發！</b> 天賦：${S.gift.icon}${S.gift.name}，起始總分 ${S.score0}。` : `<b>80 歲生日</b> —— ${S.final.title}，人生總分 ${S.final.score}。`; return; }
-    $('mapDetail').innerHTML = `<b>${n.age} 歲 · ${n.emoji} ${n.title}</b><br>你選了「${n.choice}」${n.luck===true?'🍀':n.luck===false?'💦':''}：${n.out}<br>
+function renderLiveMap(){
+  const box = $('liveMap');
+  box.innerHTML = mapSVG();
+  bindMap('liveMap','liveDetail');
+  // 寬螢幕時地圖欄自己捲動，讓最新一站保持在畫面內
+  if (getComputedStyle($('playMap')).position === 'sticky') box.scrollTop = box.scrollHeight;
+}
+function bindMap(mapId, detailId){
+  const nodes = mapNodes(), det = $(detailId);
+  $(mapId).querySelectorAll('.node').forEach(g => g.onclick = () => {
+    const n = nodes[+g.dataset.i];
+    if (n.start){ det.innerHTML = `<b>6 歲，人生出發！</b> 天賦：${S.gift.icon}${S.gift.name}，起始總分 ${S.score0}。`; return; }
+    if (n.end){ det.innerHTML = `<b>80 歲生日</b> —— ${S.final.title}，人生總分 ${S.final.score}。`; return; }
+    if (n.cur){ det.innerHTML = `<b>${n.age} 歲 · 你在這裡</b><br>目前人生總分 ${n.score}，繼續往下走吧！`; return; }
+    det.innerHTML = `<b>${n.age} 歲 · ${n.emoji} ${n.title}</b><br>你選了「${n.choice}」${n.luck===true?'🍀':n.luck===false?'💦':''}：${n.out}<br>
       人生總分 → ${n.score}（${n.ds>=0?'+':''}${n.ds}）　<span style="opacity:.75">沒走的路：${n.others.join('、')}</span>`;
   });
 }
@@ -899,7 +956,7 @@ function endGame(){
   }).join('');
   $('lifeMap').innerHTML = mapSVG();
   $('mapDetail').textContent = '點地圖上的任一站，回顧當時的選擇。';
-  bindMap();
+  bindMap('lifeMap','mapDetail');
   show('end');
   const ring = $('ring'), C = 326.7;
   ring.style.stroke = score >= 95 ? 'var(--accent)' : score >= 72 ? 'var(--j)' : 'var(--accent2)';
